@@ -130,8 +130,8 @@ m.seed.diff = glm(team1win~ Predicted_Score_diff + I(team2_seed-team1_seed), dat
 # Making Predictions using the Team Seeds Model
 
 games.to.predict$Predicted_Score_diff = predict(m.score_diff,games.to.predict)
-games.to.predict$Pred = predict(m.seed.diff, games.to.predict, type='response')
-#games.to.predict$Pred <- win_chance(predict(glm.fit, games.to.predict))
+#games.to.predict$Pred = predict(m.seed.diff, games.to.predict, type='response')
+games.to.predict$Pred <- win_chance(games.to.predict$Predicted_Score_diff)
 
 #games.to.predict$Pred <- win_chance(predict(m.score_diff, games.to.predict))
 write.csv(games.to.predict %>% select(Id, Pred), 'seed_submission.csv', row.names=FALSE)
