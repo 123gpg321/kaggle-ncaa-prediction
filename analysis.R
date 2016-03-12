@@ -85,10 +85,10 @@ colnames(adata) = c("season",
 
 team_data_by_season = adata %>% group_by(season, team) %>% summarise_each(funs(mean))
 team_data = adata %>% select(-season) %>%group_by(team) %>% summarise_each(funs(mean))
-team1_data = data.frame(team_data)
+team1_data = data.frame(team_data_by_season)
 colnames(team1_data) <- paste("team1", colnames(team1_data), sep = "_")
-team2_data = data.frame(team_data)
-colnames(team2_data) <- paste("team2", colnames(team_data), sep = "_")
+team2_data = data.frame(team_data_by_season)
+colnames(team2_data) <- paste("team2", colnames(team2_data), sep = "_")
 
 
 games.as.wins = compact.results %>%
@@ -110,12 +110,12 @@ games.as.losses = compact.results %>%
 games = rbind(games.as.wins, games.as.losses)
 #temp <- left_join(games, team_data_by_season, by=c("Season"="Season", "Wteam"="Wteam"))
 #all.data = left_join(games, team_data_by_season, by=c("Season"="Season", "Lteam"="Wteam"))
-temp <- left_join(games, team1_data, by=c("team1"="team1_team"))
-all.data = left_join(temp, team2_data, by=c("team2"="team2_team"))
+temp <- left_join(games, team1_data, by=c("team1"="team1_team","Season"="team1_season"))
+all.data = left_join(temp, team2_data, by=c("team2"="team2_team","Season"="team2_season"))
 all.data = all.data %>% na.omit()
 
-temp <- left_join(games.to.predict, team1_data, by=c("team1"="team1_team"))
-games.to.predict = left_join(temp, team2_data, by=c("team2"="team2_team"))
+temp <- left_join(games.to.predict, team1_data, by=c("team1"="team1_team","Season"="team1_season"))
+games.to.predict = left_join(temp, team2_data, by=c("team2"="team2_team","Season"="team2_season"))
 
 m.score_diff <- lm(Score_diff~ ., data=all.data)
 all.data$Predicted_Score_diff = predict(m.score_diff)
