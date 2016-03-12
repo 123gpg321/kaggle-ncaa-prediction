@@ -64,8 +64,8 @@ loser_Sdata = select(RegularSeasonDetailedResults, Season, Lteam, Lscore, Lfgm:L
 tdata = rbind(winner_Tdata, setNames(loser_Tdata, names(winner_Tdata)))
 sdata = rbind(winner_Sdata, setNames(loser_Sdata, names(winner_Sdata)))
 
-adata = rbind(tdata,sdata)
-
+#adata = rbind(tdata,sdata)
+adata = tdata
 colnames(adata) = c("season",
                         "team",
                         "score",
@@ -110,12 +110,12 @@ games.as.losses = compact.results %>%
 games = rbind(games.as.wins, games.as.losses)
 #temp <- left_join(games, team_data_by_season, by=c("Season"="Season", "Wteam"="Wteam"))
 #all.data = left_join(games, team_data_by_season, by=c("Season"="Season", "Lteam"="Wteam"))
-temp <- left_join(games, team1_data, by=c("team1"="team1_team","Season"="team1_season"))
-all.data = left_join(temp, team2_data, by=c("team2"="team2_team","Season"="team2_season"))
+temp <- left_join(games, team1_data, by=c("team1"="team1_team"))#,"Season"="team1_season"))
+all.data = left_join(temp, team2_data, by=c("team2"="team2_team"))#,"Season"="team2_season"))
 all.data = all.data %>% na.omit()
 
-temp <- left_join(games.to.predict, team1_data, by=c("team1"="team1_team","Season"="team1_season"))
-games.to.predict = left_join(temp, team2_data, by=c("team2"="team2_team","Season"="team2_season"))
+temp <- left_join(games.to.predict, team1_data, by=c("team1"="team1_team"))#,"Season"="team1_season"))
+games.to.predict = left_join(temp, team2_data, by=c("team2"="team2_team"))#,"Season"="team2_season"))
 
 m.score_diff <- lm(Score_diff~ ., data=all.data)
 all.data$Predicted_Score_diff = predict(m.score_diff)
