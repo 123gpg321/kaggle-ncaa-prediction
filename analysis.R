@@ -153,11 +153,11 @@ games.to.train$Predicted_Score_diff = predict(m.score_diff)
 games.to.test$Predicted_Score_diff = predict(m.score_diff,games.to.test)
 games.to.predict$Predicted_Score_diff = predict(m.score_diff,games.to.predict)
 
-m.win = glm(team1win~ Predicted_Score_diff + I(team2seed-team1seed), data=games.to.train, family = "binomial")
+ win_chance = ecdf(games.to.train$Score_diff)
 
-games.to.train$Pred = predict(m.win, type='response')
-games.to.test$Pred = predict(m.win, games.to.test, type='response')
-games.to.predict$Pred = predict(m.win, games.to.predict, type='response')
+games.to.train$Pred = win_chance(games.to.train$Predicted_Score_diff)
+games.to.test$Pred = win_chance(games.to.test$Predicted_Score_diff)
+games.to.predict$Pred = win_chance(games.to.predict$Predicted_Score_diff)
 
 getLogLoss = function(games){
   y = games$team1win
