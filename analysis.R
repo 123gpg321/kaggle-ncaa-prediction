@@ -1,39 +1,40 @@
 # Loading Packages
-library(data.table); library(dplyr); library(reshape)
+library(data.table); library(dplyr); library(reshape); library(stringdist)
 # Reading in the data
 TourneySeeds <- fread("../input/TourneySeeds.csv")
 SampleSubmission <- fread("../input/SampleSubmission.csv")
 Seasons <- fread("../input/Seasons.csv")
 Teams <- fread("../input/Teams.csv")
 TourneySlots <- fread("../input/TourneySlots.csv")
-TourneyDetailedResults <- fread("../input/TourneyDetailedResults.csv")
-TourneyCompactResults <- fread("../input/TourneyCompactResults.csv")
+# TourneyDetailedResults <- fread("../input/TourneyDetailedResults.csv")
+# TourneyCompactResults <- fread("../input/TourneyCompactResults.csv")
+TourneyDetailedResults <- fread("../input/RegularSeasonDetailedResults.csv")
+TourneyCompactResults <- fread("../input/RegularSeasonCompactResults.csv")
 KenPom <- fread("../input/kenpom.csv")
-colnames(KenPom)[2]="Team_Name"
-# A Quick Look at the Data
-head(TourneySeeds)
-head(TourneySlots)
-head(SampleSubmission)
-head(Seasons)
-head(Teams)
-head(TourneyDetailedResults)
-head(TourneyCompactResults)
+FiveThirtyEight <- fread("../input/fivethirtyeight.csv")
+TeamSpelling <- fread("../input/TeamSpellings.csv")
+
 # Extracting seeds for each team
 TourneySeeds <- TourneySeeds %>%
     mutate(SeedNum = gsub("[A-Z+a-z]", "", Seed)) %>% select(Season, Team, SeedNum)
 
-head(TourneySeeds)
 
+# Fix this with spelling!
+fuzzyMatch = cbind(Teams$Team_Name,KenPom$Team[amatch(Teams$Team_Name,KenPom$Team,maxDist=70)])
+colnames(fuzzyMatch) = c("Teams_name","KenPom_name")
 
+# Prepare prediction target
 games.to.predict <- cbind(SampleSubmission$Id, colsplit(SampleSubmission$Id, split = "_", names = c('season', 'team1', 'team2')))
-head(games.to.predict)
-# Joining Games with Team Seeds
 
+# Add available data to each target game
 temp <- left_join(games.to.predict, TourneySeeds, by=c("season"="Season", "team1"="Team"))
 games.to.predict <- left_join(temp, TourneySeeds, by=c("season"="Season", "team2"="Team"))
 colnames(games.to.predict)[c(1,5:6)] <- c("Id", "team1seed", "team2seed")
 games.to.predict <- games.to.predict %>% mutate(team1seed = as.numeric(team1seed), team2seed = as.numeric(team2seed))
 games.to.predict = games.to.predict %>% dplyr::rename(Season=season,team1_seed=team1seed,team2_seed=team2seed)
+
+
+
 # Joining (compact) Results with Team Seeds
 temp <- left_join(as.data.frame(TourneyCompactResults), TourneySeeds, by=c("Season", "Wteam"="Team"))
 compact.results <- left_join(temp, TourneySeeds, by=c("Season", "Lteam"="Team"))
@@ -73,10 +74,23 @@ colnames(tdata) = c("season",
 
 team_data_by_season = tdata %>% group_by(season, team) %>% summarise_each(funs(mean))
 team_data = tdata %>% select(-season) %>%group_by(team) %>% summarise_each(funs(mean))
+
+temp = left_join(data.frame(team_data_by_season),data.frame(Teams),by=c("team"="Team_Id"))
+remp = left_join(temp,fuzzyMatch,by=c("Team_Name"="Teams_name"),copy=TRUE)
+team_data_by_season = left_join(remp,data.frame(KenPom),by=c("KenPom_name"="Team", "season"="Year"))
+
+
+
 team1_data = data.frame(team_data)
 colnames(team1_data) <- paste("team1", colnames(team1_data), sep = "_")
 team2_data = data.frame(team_data)
-colnames(team2_data) <- paste("team2", colnames(team_data), sep = "_")
+colnames(team2_data) <- paste("team2", colnames(team2_data), sep = "_")
+
+team1_data_by_season = data.frame(team_data_by_season)
+colnames(team1_data_by_season) <- paste("team1", colnames(team1_data_by_season), sep = "_")
+team2_data_by_season = data.frame(team_data_by_season)
+colnames(team2_data_by_season) <- paste("team2", colnames(team2_data_by_season), sep = "_")
+
 
 
 games.as.wins = compact.results %>%
@@ -96,14 +110,22 @@ games.as.losses = compact.results %>%
                          team2_seed = SeedNum.x,
                          Score_diff)
 games = rbind(games.as.wins, games.as.losses)
-#temp <- left_join(games, team_data_by_season, by=c("Season"="Season", "Wteam"="Wteam"))
-#all.data = left_join(games, team_data_by_season, by=c("Season"="Season", "Lteam"="Wteam"))
-temp <- left_join(games, team1_data, by=c("team1"="team1_team"))
-all.data = left_join(temp, team2_data, by=c("team2"="team2_team"))
+temp <- left_join(games, team1_data_by_season, by=c("Season"="team1_season", "team1"="team1_team"))
+all.data = left_join(temp, team2_data_by_season, by=c("Season"="team2_season", "team2"="team2_team"))
+#temp <- left_join(games, team1_data, by=c("team1"="team1_team"))
+#all.data = left_join(temp, team2_data, by=c("team2"="team2_team"))
 all.data = all.data %>% na.omit()
 
-temp <- left_join(games.to.predict, team1_data, by=c("team1"="team1_team"))
-games.to.predict = left_join(temp, team2_data, by=c("team2"="team2_team"))
+
+temp <- left_join(games.to.predict, team1_data_by_season, by=c("Season"="team1_season", "team1"="team1_team"))
+games.to.predict = left_join(temp, team2_data_by_season, by=c("Season"="team2_season", "team2"="team2_team"))
+#temp <- left_join(games.to.predict, team1_data, by=c("team1"="team1_team"))
+#games.to.predict = left_join(temp, team2_data, by=c("team2"="team2_team"))
+
+
+all.data = all.data %>% select(-c(team1_KenPom_name,team2_KenPom_name, team1_Team_Name, team2_Team_Name))
+
+test = glm(team1win~ ., data=all.data, family = "binomial")
 
 m.score_diff <- lm(Score_diff~ ., data=all.data)
 all.data$Predicted_Score_diff = predict(m.score_diff)
@@ -124,28 +146,8 @@ games.to.predict$Pred = predict(m.seed.diff, games.to.predict, type='response')
 #games.to.predict$Pred <- win_chance(predict(m.score_diff, games.to.predict))
 write.csv(games.to.predict %>% select(Id, Pred), 'seed_submission.csv', row.names=FALSE)
 
-predict(m.seed.diff2,games.to.predict)[which(full.set$team1win==1)]
-full.set$prediction = predict(m.seed.diff2,type="response")
-#ggplot(full.set, aes(prediction, fill = team1win==1)) + geom_density(alpha = 0.2)
-ggplot(full.set, aes(prediction, fill = team1win==1)) + geom_density(alpha = 0.2) + guides(fill=guide_legend(title='Team 1 wins'))
 
 
-all.data = data.frame(TourneyDetailedResults) %>%
-                  left_join(data.frame(TourneySeeds),by=c("Season"="Season", "Wteam"="Team")) %>%
-                  dplyr::rename(Wseed = SeedNum) %>%
-                  left_join(data.frame(TourneySeeds),by=c("Season"="Season", "Lteam"="Team")) %>%
-                  dplyr::rename(Lseed = SeedNum) %>%
-                  mutate(Wseed = as.numeric(Wseed),
-                  Lseed = as.numeric(Lseed),
-                  Score_diff=Wscore - Lscore,
-                  Rankdiff = Wseed - Lseed) %>%
-                  select(-c(Wloc,Lscore,Wscore))
+# this is how I could get the KenPom Data in.
 
-
-KenPom$link = KenPom$Team_Name
-KenPom$Ken_index = 1:dim(KenPom)[1]
-Teams$link = Teams$Team_Name
-Teams$Team_index = 1:dim(Teams)[1]
-team.full = merge(Teams, KenPom, by="link")
-> i = 5; KenPom$Team_Name[i]; Teams$Team_Name[agrep(KenPom$Team_Name[i],Teams$Team_Name)]
-> i = 5; KenPom$Team_Name[i]; Teams$Team_Name[agrep(KenPom$Team_Name[i],Teams$Team_Name)]
+#i = 5; KenPom$Team_Name[i]; Teams$Team_Name[agrep(KenPom$Team_Name[i],Teams$Team_Name)]
