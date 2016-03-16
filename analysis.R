@@ -170,4 +170,4 @@ getLogLoss(games.to.train)
 
 getLogLoss(games.to.test)
 
-write.csv(games.to.predict %>% select(SampleSubmission.Id, Pred), 'seed_submission.csv', row.names=FALSE)
+write.csv(games.to.predict %>% select(Id=SampleSubmission.Id, Pred), 'seed_submission.csv', row.names=FALSE)
