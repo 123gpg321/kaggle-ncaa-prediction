@@ -1,7 +1,5 @@
-
-# coding: utf-8
-
-# In[317]:
+# This code was taken from https://www.kaggle.com/c/march-machine-learning-mania-2016/forums/t/18987/ken-pom-data/109190
+# and modified for my own purposes. thanks to WalterHan for the original script!
 
 from bs4 import BeautifulSoup
 import requests
@@ -9,19 +7,13 @@ import pandas as pd
 import numpy as np
 import re
 
-
-# In[318]:
-
 # Base url, and a lambda func to return url for a given year
 base_url = 'http://kenpom.com/index.php'
 url_year = lambda x: '%s?y=%s' % (base_url, str(x) if x != 2016 else base_url)
 
-# Years on kenpom's site (could also scrape this and 
+# Years on kenpom's site (could also scrape this and
 # set as a list if you want to be more dynamic)
 years = range(2002, 2017)
-
-
-# In[321]:
 
 # Create a method that parses a given year and spits out a raw dataframe
 def import_raw_year(year):
@@ -47,26 +39,17 @@ def import_raw_year(year):
     df['year'] = year
     return df
 
-
-# In[322]:
-
 # Import all the years into a singular dataframe
 df = None
 for x in years:
     df = pd.concat( (df, import_raw_year(x)), axis=0)         if df is not None else import_raw_year(2002)
 
-
-# In[323]:
-
 # Column rename based off of original website
-df.columns = ['Rank', 'Team', 'Conference', 'W-L', 'Pyth', 
+df.columns = ['Rank', 'Team', 'Conference', 'W-L', 'Pyth',
              'AdjustO', 'AdjustO Rank', 'AdjustD', 'AdjustD Rank',
-             'AdjustT', 'AdjustT Rank', 'Luck', 'Luck Rank', 
+             'AdjustT', 'AdjustT Rank', 'Luck', 'Luck Rank',
              'SOS Pyth', 'SOS Pyth Rank', 'SOS OppO', 'SOS OppO Rank',
              'SOS OppD', 'SOS OppD Rank', 'NCSOS Pyth', 'NCSOS Pyth Rank', 'Year']
-
-
-# In[324]:
 
 # Lambda that returns true if given string is a number and a valid seed number (1-16)
 valid_seed = lambda x: True if str(x).replace(' ', '').isdigit()                 and int(x) > 0 and int(x) <= 16 else False
@@ -76,31 +59,17 @@ df['Seed'] = df['Team'].apply(lambda x: x[-2:].replace(' ', '')                 
 
 df['Team'] = df['Team'].apply(lambda x: x[:-2] if valid_seed(x[-2:]) else x)
 
-
-# In[325]:
-
 # Split W-L column into wins and losses
 df['Wins'] = df['W-L'].apply(lambda x: int(re.sub('-.*', '', x)) )
 df['Losses'] = df['W-L'].apply(lambda x: int(re.sub('.*-', '', x)) )
 df.drop('W-L', inplace=True, axis=1)
 
-
-# In[326]:
-
 # Reorder columns just cause I'm OCD
-df=df[[ 'Year', 'Rank', 'Team', 'Conference', 'Wins', 'Losses', 'Seed','Pyth', 
+df=df[[ 'Year', 'Rank', 'Team', 'Conference', 'Wins', 'Losses', 'Seed','Pyth',
              'AdjustO', 'AdjustO Rank', 'AdjustD', 'AdjustD Rank',
-             'AdjustT', 'AdjustT Rank', 'Luck', 'Luck Rank', 
+             'AdjustT', 'AdjustT Rank', 'Luck', 'Luck Rank',
              'SOS Pyth', 'SOS Pyth Rank', 'SOS OppO', 'SOS OppO Rank',
              'SOS OppD', 'SOS OppD Rank', 'NCSOS Pyth', 'NCSOS Pyth Rank']]
 
 
-# In[328]:
-
 df.to_csv('kenpom.csv', index=False)
-
-
-# In[ ]:
-
-
-
