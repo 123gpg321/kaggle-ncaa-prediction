@@ -1,0 +1,12 @@
+File Name	URL	Source	Comments
+TourneySeeds	https://s3.amazonaws.com/kaggle-ncaa-prediction/data/TourneySeeds.csv	https://www.kaggle.com/c/march-machine-learning-mania-2016/download/march-machine-learning-mania-2016-v2.zip
+SampleSubmission	https://s3.amazonaws.com/kaggle-ncaa-prediction/data/SampleSubmission.csv	https://www.kaggle.com/c/march-machine-learning-mania-2016/download/march-machine-learning-mania-2016-v2.zip	
+Seasons	https://s3.amazonaws.com/kaggle-ncaa-prediction/data/Seasons.csv	https://www.kaggle.com/c/march-machine-learning-mania-2016/download/march-machine-learning-mania-2016-v2.zip
+Teams	https://s3.amazonaws.com/kaggle-ncaa-prediction/data/Teams.csv	https://www.kaggle.com/c/march-machine-learning-mania-2016/download/march-machine-learning-mania-2016-v2.zip
+TourneySlots	https://s3.amazonaws.com/kaggle-ncaa-prediction/data/TourneySlots.csv	https://www.kaggle.com/c/march-machine-learning-mania-2016/download/march-machine-learning-mania-2016-v2.zip
+TourneyDetailedResults	https://s3.amazonaws.com/kaggle-ncaa-prediction/data/TourneyDetailedResults.csv	https://www.kaggle.com/c/march-machine-learning-mania-2016/download/march-machine-learning-mania-2016-v2.zip
+TourneyCompactResults	https://s3.amazonaws.com/kaggle-ncaa-prediction/data/TourneyCompactResults.csv	https://www.kaggle.com/c/march-machine-learning-mania-2016/download/march-machine-learning-mania-2016-v2.zip
+RegularSeasonDetailedResults	https://s3.amazonaws.com/kaggle-ncaa-prediction/data/RegularSeasonDetailedResults.csv	https://www.kaggle.com/c/march-machine-learning-mania-2016/download/march-machine-learning-mania-2016-v2.zip
+RegularSeasonCompactResults	https://s3.amazonaws.com/kaggle-ncaa-prediction/data/RegularSeasonCompactResults.csv	https://www.kaggle.com/c/march-machine-learning-mania-2016/download/march-machine-learning-mania-2016-v2.zip
+KenPom	https://s3.amazonaws.com/kaggle-ncaa-prediction/data/kenpom.csv	https://www.kaggle.com/c/march-machine-learning-mania-2016/forums/t/18987/ken-pom-data/109190	using kenpom scraper
+TeamSpelling	https://s3.amazonaws.com/kaggle-ncaa-prediction/data/TeamSpellings.csv	https://www.kaggle.com/c/march-machine-learning-mania-2016/forums/t/18897/additional-data-team-alternate-spellings-to-assist-in-importing-from-external	 self modified by hand

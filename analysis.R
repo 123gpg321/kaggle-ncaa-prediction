@@ -7,31 +7,43 @@ library(stringdist)
 
 rename = dplyr::rename
 ################################################################################
+DataFiles = fread(Meta.csv)
+################################################################################
+# Download data if missing
+apply(DataFiles,1,function(x){
+  file_location=paste('data/',x[1],'.csv',sep='')
+  if(!file.exists(file_location)){
+    download.file(x[2],file_location)
+  }
+  })
+
+################################################################################
 # Reading in the raw data
-TourneySeeds <- fread("../input/TourneySeeds.csv")
-SampleSubmission <- fread("../input/SampleSubmission.csv")
-Seasons <- fread("../input/Seasons.csv")
-Teams <- fread("../input/Teams.csv")
-TourneySlots <- fread("../input/TourneySlots.csv")
-TourneyDetailedResults <- fread("../input/TourneyDetailedResults.csv")
-#TourneyCompactResults <- fread("../input/TourneyCompactResults.csv")
-RegularSeasonDetailedResults <- fread("../input/RegularSeasonDetailedResults.csv")
-#RegularSeasonCompactResults <- fread("../input/RegularSeasonCompactResults.csv")
-KenPom <- fread("../input/kenpom.csv")
-FiveThirtyEight <- fread("../input/fivethirtyeight.csv")
-TeamSpelling <- fread("../input/TeamSpellings.csv")
-TeamSpelling <- rbind(TeamSpelling,rename(Teams,name_spelling=Team_Name,team_id=Team_Id))
+TourneySeeds <- fread("data/TourneySeeds.csv")
+SampleSubmission <- fread("data/SampleSubmission.csv")
+Seasons <- fread("data/Seasons.csv")
+Teams <- fread("data/Teams.csv")
+TourneySlots <- fread("data/TourneySlots.csv")
+TourneyDetailedResults <- fread("data/TourneyDetailedResults.csv")
+#TourneyCompactResults <- fread("data/TourneyCompactResults.csv")
+RegularSeasonDetailedResults <- fread("data/RegularSeasonDetailedResults.csv")
+#RegularSeasonCompactResults <- fread("data/RegularSeasonCompactResults.csv")
+KenPom <- fread("data/kenpom.csv")
+TeamSpelling <- fread("data/TeamSpellings.csv")
 ################################################################################
 # Preproces data
-
+# Rename for merge
+TeamSpelling <- rbind(TeamSpelling,rename(Teams,name_spelling=Team_Name,team_id=Team_Id))
 # Extracting seeds for each team
 TourneySeeds <- TourneySeeds %>%
     mutate(SeedNum = gsub("[A-Z+a-z]", "", Seed)) %>% select(Season, Team, SeedNum)
 
-# Align forign data
+# fix external data
 colnames(TeamSpelling)[1] = "Team"
 KenPom$Team = tolower(KenPom$Team)
 Teams$Team_Name = tolower(Teams$Team_Name)
+
+# mamp spelling
 KenPom = left_join(KenPom, TeamSpelling, by=c('Team'='Team'))
 
 ################################################################################
@@ -103,10 +115,10 @@ flippedGames = function(game){
 games.to.train = rbind(games.to.train,flippedGames(games.to.train))
 
 # Add available data to each target game
-addDataToGame = function(game) {
+addDataToGames = function(games) {
 
-  game <- data.frame(game) %>%
-          # add March madness seed to teams in game
+  games <- data.frame(games) %>%
+          # add March madness seed to teams in games
           left_join(TourneySeeds, by=c("season"="Season", "team1"="Team")) %>%
           rename(team1seed = SeedNum) %>%
           left_join(TourneySeeds, by=c("season"="Season", "team2"="Team")) %>%
@@ -118,13 +130,13 @@ addDataToGame = function(game) {
           # add external data
           left_join(team1_kenpom_data_by_season,by=c("season" = "team1_Year", "team1"="team1_team_id")) %>%
           left_join(team2_kenpom_data_by_season,by=c("season" = "team2_Year", "team2"="team2_team_id"))
-  return(game)
+  return(games)
 
 }
 
-games.to.train = addDataToGame(games.to.train)
-games.to.test = addDataToGame(games.to.test)
-games.to.predict = addDataToGame(games.to.predict)
+games.to.train = addDataToGames(games.to.train)
+games.to.test = addDataToGames(games.to.test)
+games.to.predict = addDataToGames(games.to.predict)
 
 games.to.train = games.to.train %>% na.omit()
 games.to.test = games.to.test %>% na.omit()
