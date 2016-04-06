@@ -7,7 +7,7 @@ library(stringdist)
 
 rename = dplyr::rename
 ################################################################################
-DataFiles = fread(Meta.csv)
+DataFiles = fread('meta_data.txt')
 ################################################################################
 # Download data if missing
 apply(DataFiles,1,function(x){
@@ -28,7 +28,7 @@ TourneyDetailedResults <- fread("data/TourneyDetailedResults.csv")
 #TourneyCompactResults <- fread("data/TourneyCompactResults.csv")
 RegularSeasonDetailedResults <- fread("data/RegularSeasonDetailedResults.csv")
 #RegularSeasonCompactResults <- fread("data/RegularSeasonCompactResults.csv")
-KenPom <- fread("data/kenpom.csv")
+KenPom <- fread("data/KenPom.csv")
 TeamSpelling <- fread("data/TeamSpellings.csv")
 ################################################################################
 # Preproces data
